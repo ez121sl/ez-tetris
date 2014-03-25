@@ -61,13 +61,13 @@
   (doseq [row field]
     (println (map #(condp = % :blank " " "*") row)))
   (println))
-
-(defn render [{:keys [field shape pos] :as game}]
-  (print-field (overlay-allowed field shape pos)))
 )
 
 (defn- next-pos [pos dir]
   (mapv + pos dir))
+
+(defn render [{:keys [field shape pos] :as game}]
+  (overlay-allowed field shape pos))
 
 (defn next-shape []
   (nth shapes (rand-int (count shapes))))
