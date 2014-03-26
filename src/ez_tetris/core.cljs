@@ -21,7 +21,6 @@
 (defmulti handler (fn [cmd _] cmd))
 
 (defmethod handler :left [_ game]
-  (println "handler left")
   (move game left))
 
 (defmethod handler :right [_ game]
@@ -38,9 +37,10 @@
     om/IRender
     (render [_]
             (apply dom/div #js { :className "field" }
-                   (map #(apply dom/div #js { :className "row" }
-                                (map (fn [sq] (dom/span #js { :className (str "cell "(name sq)) } "\u00A0\u00A0")) %))
-                        (render (:game app)))))))
+                   (for [row (render (:game app))]
+                     (apply dom/div #js { :className "row" }
+                            (for [cell row]
+                              (dom/span #js { :className (str "cell "(name cell)) } "\u00A0"))))))))
 
 (defn controls [app owner]
   (reify
