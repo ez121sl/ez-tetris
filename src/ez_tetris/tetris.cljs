@@ -10,7 +10,11 @@
               [:green :green :blank]],
              [[:blue :blue :blue :blue]],
              [[:yellow :yellow]
-              [:yellow :yellow]]])
+              [:yellow :yellow]]
+             [[:brown :brown :brown]
+              [:brown :blank  :blank]]
+             [[:orange :orange :orange]
+              [:blank :blank :orange]]])
 
 (def ^:private rotate-shape (partial apply mapv vector))
 

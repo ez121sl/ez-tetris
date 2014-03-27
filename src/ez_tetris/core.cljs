@@ -4,14 +4,15 @@
             [ez-tetris.tetris :refer [next-shape move rotate left right down render]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [cljs.core.async :refer [put! chan <!]]
+            [cljs.core.async :refer [put! chan <! map>]]
             [goog.events :as events]
             [goog.Timer])
-  (:import goog.Timer))
+  (:import goog.Timer
+           goog.events.KeyHandler))
 
 (enable-console-print!)
 
-(def initial-state { :game { :field (vec2d 10 10 :blank)
+(def initial-state { :game { :field (vec2d 10 16 :blank)
                              :shape (next-shape)
                              :pos [0 5] }
                      :name "ez-tetris"})
@@ -31,6 +32,9 @@
 
 (defmethod handler :rotate [_ game]
   (rotate game))
+
+(defmethod handler :default [_ game]
+  game)
 
 (defn field [app owner]
   (reify
@@ -57,16 +61,21 @@
     om/IInitState
     (init-state [_]
                 { :command (chan)
-                  :timer (Timer.)})
+                  :timer (Timer.)
+                  :key-handler (KeyHandler. js/document)})
     om/IWillMount
     (will-mount [_]
                 (let [command (om/get-state owner :command)
-                      timer (beat (om/get-state owner :timer) 500)]
-                  (events/listen timer Timer/TICK #(put! command :down))
+                      timer (beat (om/get-state owner :timer) 500)
+                      key-handler (om/get-state owner :key-handler)
+                      key-map { 32 :rotate, 37 :left, 39 :right, 40 :south }
+                      key-chan (map> #(key-map (.-keyCode %) :none) command)]
+                  (events/listen timer Timer/TICK (fn [_] (put! command :down)))
+                  (events/listen key-handler "key" (fn [e] (put! key-chan e)))
                   (go (loop []
-                        (let [key (<! command)]
-                          (println "command")
-                          (om/transact! app :game #(handler key %))
+                        (let [cmd (<! command)]
+                          ;; (println "command " key)
+                          (om/transact! app :game #(handler cmd %))
                           (recur))))))
     om/IRenderState
     (render-state [_ state]
