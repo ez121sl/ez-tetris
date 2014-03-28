@@ -16,7 +16,8 @@
              [[:orange :orange :orange]
               [:blank :blank :orange]]])
 
-(def ^:private rotate-shape (partial apply mapv vector))
+(defn- rotate-shape [s]
+  (apply mapv vector (map reverse s)))
 
 (defn- overlayed-val [field-val shape-val]
   (if (= field-val :blank)
@@ -59,26 +60,30 @@
 (defn- prepend-rows [field num-rows]
   (vec (concat (vec2d (width field) num-rows :blank) field)))
 
-(comment
-
-(defn print-field [field]
-  (doseq [row field]
-    (println (map #(condp = % :blank " " "*") row)))
-  (println))
-)
-
 (defn- next-pos [pos dir]
   (mapv + pos dir))
 
-(defn render [{:keys [field shape pos] :as game}]
-  (overlay-allowed field shape pos))
+(defn- start-pos [field shape]
+  [0 (quot (- (width field) (width shape)) 2)])
+
+(defn render [{:keys [field shape pos lost] :as game}]
+  (if lost
+    field
+    (overlay-allowed field shape pos)))
 
 (defn next-shape []
   (nth shapes (rand-int (count shapes))))
 
+(defn starting-state []
+  (let [shape (next-shape)
+        field (vec2d 10 16 :blank)]
+    { :field field
+      :shape shape
+      :pos (start-pos field shape) }))
+
 (defn rotate [{:keys [field shape pos] :as game}]
   (let [rotated (rotate-shape shape)]
-    (if-let [overlayed (overlay-allowed field shape pos)]
+    (if (overlay-allowed field rotated pos)
       (assoc game :shape rotated)
       game)))
 
@@ -96,8 +101,13 @@
               rm-rows (full-rows new-field)
               new-field (-> new-field
                           (remove-rows rm-rows)
-                          (prepend-rows (count rm-rows)))]
-          (-> game
-            (assoc :field new-field)
-            (assoc :shape (next-shape))
-            (assoc :pos [0 5])))))))
+                          (prepend-rows (count rm-rows)))
+              new-shape (next-shape)
+              start-pos (start-pos new-field new-shape)
+              game (-> game
+                (assoc :field new-field)
+                (assoc :shape new-shape)
+                (assoc :pos start-pos))]
+          (if (overlay-allowed new-field new-shape start-pos)
+            game
+            (assoc game :lost true)))))))

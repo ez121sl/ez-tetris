@@ -1,10 +1,10 @@
 (ns ez-tetris.core
   (:require-macros [cljs.core.async.macros :refer [go]])
-  (:require [ez-tetris.util :refer [vec2d beat]]
-            [ez-tetris.tetris :refer [next-shape move rotate left right down render]]
+  (:require [ez-tetris.util :refer [beat]]
+            [ez-tetris.tetris :refer [next-shape move rotate left right down render starting-state]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [cljs.core.async :refer [put! chan <! map>]]
+            [cljs.core.async :refer [put! chan <! map> filter>]]
             [goog.events :as events]
             [goog.Timer])
   (:import goog.Timer
@@ -12,12 +12,12 @@
 
 (enable-console-print!)
 
-(def initial-state { :game { :field (vec2d 10 16 :blank)
-                             :shape (next-shape)
-                             :pos [0 5] }
-                     :name "ez-tetris"})
+(defn initial-state [] { :game (starting-state)
+                         :name "ez-tetris"})
 
-(def game (atom initial-state))
+(def game (atom (initial-state)))
+
+(def commands #{ :left :right :down :rotate })
 
 (defmulti handler (fn [cmd _] cmd))
 
@@ -60,7 +60,7 @@
   (reify
     om/IInitState
     (init-state [_]
-                { :command (chan)
+                { :command (filter> commands (chan))
                   :timer (Timer.)
                   :key-handler (KeyHandler. js/document)})
     om/IWillMount
@@ -77,12 +77,19 @@
                           ;; (println "command " key)
                           (om/transact! app :game #(handler cmd %))
                           (recur))))))
+    om/IWillUpdate
+    (will-update [_ next-props next-state]
+                 ;; (println next-props " - " next-state)
+                 (when (get-in next-props [:game :lost])
+                   (.stop (:timer next-state))))
     om/IRenderState
     (render-state [_ state]
             (dom/div nil
                      (dom/h1 nil "EZ Tetris")
                      (om/build field app)
-                     (om/build controls app { :init-state state })))))
+                     (if (get-in app [:game :lost])
+                       (dom/h2 nil "Game over!")
+                       (om/build controls app { :init-state state }))))))
 
 (om/root
   tetris
