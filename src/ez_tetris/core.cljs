@@ -1,7 +1,7 @@
 (ns ez-tetris.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [ez-tetris.util :refer [beat]]
-            [ez-tetris.tetris :refer [next-shape move rotate left right down render starting-state]]
+            [ez-tetris.tetris :refer [move rotate left right down render render-next-shape starting-state]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <! map> filter>]]
@@ -13,7 +13,7 @@
 (enable-console-print!)
 
 (defn initial-state [] { :game (starting-state)
-                         :name "ez-tetris"})
+                         :name "EZ Tetris"})
 
 (def game (atom (initial-state)))
 
@@ -36,15 +36,18 @@
 (defmethod handler :default [_ game]
   game)
 
+(defn- render-field [field & [classes]]
+  (apply dom/div #js { :className (:field classes "field") }
+         (for [row field]
+           (apply dom/div #js { :className (:row classes "row") }
+                  (for [cell row]
+                    (dom/span #js { :className (str (:cell classes "cell") " " (name cell)) } "\u00A0"))))))
+
 (defn field [app owner]
   (reify
     om/IRender
     (render [_]
-            (apply dom/div #js { :className "field" }
-                   (for [row (render (:game app))]
-                     (apply dom/div #js { :className "row" }
-                            (for [cell row]
-                              (dom/span #js { :className (str "cell "(name cell)) } "\u00A0"))))))))
+            (render-field (render (:game app))))))
 
 (defn controls [app owner]
   (reify
@@ -55,6 +58,27 @@
                      (dom/button #js { :onClick #(put! command :rotate) } "rotate")
                      (dom/button #js { :onClick #(put! command :down) } "down")
                      (dom/button #js { :onClick #(put! command :right) } "right")))))
+
+(defn next-shape [app owner]
+  (reify
+    om/IRender
+    (render [_]
+            (dom/div #js {:className "next-shape"}
+                     (dom/div #js {:className "up-next"} "Up next:")
+                     (render-field (render-next-shape (:game app)) { :field nil })))))
+
+(comment
+
+  TODO:
+
+  - Different levels + start / stop / pause game
+  + view next next shape
+  - score
+  - push to bitbucket
+  - deploy to Amazon
+  - optimize for mobile
+
+  )
 
 (defn tetris [app owner]
   (reify
@@ -85,8 +109,9 @@
     om/IRenderState
     (render-state [_ state]
             (dom/div nil
-                     (dom/h1 nil "EZ Tetris")
+                     (dom/h1 nil (:name app))
                      (om/build field app)
+                     (om/build next-shape app)
                      (if (get-in app [:game :lost])
                        (dom/h2 nil "Game over!")
                        (om/build controls app { :init-state state }))))))

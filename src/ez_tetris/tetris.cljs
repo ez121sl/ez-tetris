@@ -71,14 +71,21 @@
     field
     (overlay-allowed field shape pos)))
 
-(defn next-shape []
+(defn render-next-shape [{:keys [shape-next lost] :as game}]
+  (if lost
+    (vec2d 4 4 :blank)
+    (overlay-allowed (vec2d 4 4 :blank) shape-next [0 0])))
+
+(defn- next-shape []
   (nth shapes (rand-int (count shapes))))
 
 (defn starting-state []
   (let [shape (next-shape)
+        shape2 (next-shape)
         field (vec2d 10 16 :blank)]
     { :field field
       :shape shape
+      :shape-next shape2
       :pos (start-pos field shape) }))
 
 (defn rotate [{:keys [field shape pos] :as game}]
@@ -91,7 +98,7 @@
 (def right [0 1])
 (def down [1 0])
 
-(defn move [{:keys [field shape pos] :as game} requested-dir]
+(defn move [{:keys [field shape pos shape-next] :as game} requested-dir]
   (let [new-pos (next-pos pos requested-dir)]
     (if-let [overlayed (overlay-allowed field shape new-pos)]
       (assoc game :pos new-pos)
@@ -102,11 +109,13 @@
               new-field (-> new-field
                           (remove-rows rm-rows)
                           (prepend-rows (count rm-rows)))
-              new-shape (next-shape)
+              new-shape shape-next
+              new-shape2 (next-shape)
               start-pos (start-pos new-field new-shape)
               game (-> game
                 (assoc :field new-field)
                 (assoc :shape new-shape)
+                (assoc :shape-next new-shape2)
                 (assoc :pos start-pos))]
           (if (overlay-allowed new-field new-shape start-pos)
             game
