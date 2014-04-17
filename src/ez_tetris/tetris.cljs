@@ -86,7 +86,8 @@
     { :field field
       :shape shape
       :shape-next shape2
-      :pos (start-pos field shape) }))
+      :pos (start-pos field shape)
+      :score 0 }))
 
 (defn rotate [{:keys [field shape pos] :as game}]
   (let [rotated (rotate-shape shape)]
@@ -98,7 +99,7 @@
 (def right [0 1])
 (def down [1 0])
 
-(defn move [{:keys [field shape pos shape-next] :as game} requested-dir]
+(defn move [{:keys [field shape pos shape-next score] :as game} requested-dir]
   (let [new-pos (next-pos pos requested-dir)]
     (if-let [overlayed (overlay-allowed field shape new-pos)]
       (assoc game :pos new-pos)
@@ -107,16 +108,17 @@
         (let [new-field (overlay-allowed field shape pos)
               rm-rows (full-rows new-field)
               new-field (-> new-field
-                          (remove-rows rm-rows)
-                          (prepend-rows (count rm-rows)))
+                            (remove-rows rm-rows)
+                            (prepend-rows (count rm-rows)))
               new-shape shape-next
               new-shape2 (next-shape)
               start-pos (start-pos new-field new-shape)
               game (-> game
-                (assoc :field new-field)
-                (assoc :shape new-shape)
-                (assoc :shape-next new-shape2)
-                (assoc :pos start-pos))]
+                       (assoc :field new-field)
+                       (assoc :shape new-shape)
+                       (assoc :shape-next new-shape2)
+                       (assoc :pos start-pos)
+                       (assoc :score (+ score (* 10 (count rm-rows)))))]
           (if (overlay-allowed new-field new-shape start-pos)
             game
             (assoc game :lost true)))))))

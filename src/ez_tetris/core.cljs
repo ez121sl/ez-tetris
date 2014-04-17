@@ -59,13 +59,15 @@
                      (dom/button #js { :onClick #(put! command :down) } "down")
                      (dom/button #js { :onClick #(put! command :right) } "right")))))
 
-(defn next-shape [app owner]
+(defn misc-info [app owner]
   (reify
     om/IRender
     (render [_]
-            (dom/div #js {:className "next-shape"}
-                     (dom/div #js {:className "up-next"} "Up next:")
-                     (render-field (render-next-shape (:game app)) { :field nil })))))
+            (dom/div #js {:className "misc-info"}
+                     (dom/div #js {:className "misc-row"} "Up next:")
+                     (render-field (render-next-shape (:game app)) { :field "misc-row" })
+                     (dom/div #js {:className "misc-row"} "Score:")
+                     (dom/div #js {:className "misc-row"} (get-in app [:game :score]))))))
 
 (comment
 
@@ -74,8 +76,8 @@
   - Different levels + start / stop / pause game
   + view next next shape
   - score
-  - push to bitbucket
-  - deploy to Amazon
+  + push to github
+  + deploy to Amazon
   - optimize for mobile
 
   )
@@ -108,13 +110,13 @@
                    (.stop (:timer next-state))))
     om/IRenderState
     (render-state [_ state]
-            (dom/div nil
-                     (dom/h1 nil (:name app))
-                     (om/build field app)
-                     (om/build next-shape app)
-                     (if (get-in app [:game :lost])
-                       (dom/h2 nil "Game over!")
-                       (om/build controls app { :init-state state }))))))
+                  (dom/div nil
+                           (dom/h1 nil (:name app))
+                           (om/build field app)
+                           (om/build misc-info app)
+                           (if (get-in app [:game :lost])
+                             (dom/h2 nil "Game over!")
+                             (om/build controls app { :init-state state }))))))
 
 (om/root
   tetris
