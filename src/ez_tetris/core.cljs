@@ -53,11 +53,11 @@
   (reify
     om/IRenderState
     (render-state [_ { :keys [command] }]
-            (dom/div nil
-                     (dom/button #js { :onClick #(put! command :left) } "left")
-                     (dom/button #js { :onClick #(put! command :rotate) } "rotate")
-                     (dom/button #js { :onClick #(put! command :down) } "down")
-                     (dom/button #js { :onClick #(put! command :right) } "right")))))
+            (dom/div #js { :className "controls" }
+                     (dom/button #js { :className "thumb" :onClick #(put! command :left) } "left")
+                     (dom/button #js { :className "thumb spaced" :onClick #(put! command :rotate) } "rotate")
+                     (dom/button #js { :className "thumb" :onClick #(put! command :right) } "right")
+                     (dom/button #js { :className "thumb" :onClick #(put! command :down) } "down")))))
 
 (defn misc-info [app owner]
   (reify
@@ -94,7 +94,7 @@
                 (let [command (om/get-state owner :command)
                       timer (beat (om/get-state owner :timer) 500)
                       key-handler (om/get-state owner :key-handler)
-                      key-map { 32 :rotate, 37 :left, 39 :right, 40 :south }
+                      key-map { 32 :rotate, 37 :left, 39 :right, 40 :down }
                       key-chan (map> #(key-map (.-keyCode %) :none) command)]
                   (events/listen timer Timer/TICK (fn [_] (put! command :down)))
                   (events/listen key-handler "key" (fn [e] (put! key-chan e)))
