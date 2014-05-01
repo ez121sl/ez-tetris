@@ -12,6 +12,8 @@
 
 (enable-console-print!)
 
+(.addEventListener js/window "load" #(.attach js/FastClick (.-body js/document)) false)
+
 (defn initial-state [] { :game (starting-state)
                          :name "EZ Tetris"})
 
