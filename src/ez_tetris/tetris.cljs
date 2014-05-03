@@ -66,33 +66,26 @@
 (defn- start-pos [field shape]
   [0 (quot (- (width field) (width shape)) 2)])
 
-(defn render [{:keys [field shape pos lost] :as game}]
-  (if lost
-    field
-    (overlay-allowed field shape pos)))
-
-(defn render-next-shape [{:keys [shape-next lost] :as game}]
-  (if lost
-    (vec2d 4 4 :blank)
-    (overlay-allowed (vec2d 4 4 :blank) shape-next [0 0])))
-
 (defn- next-shape []
   (nth shapes (rand-int (count shapes))))
 
 (defn starting-state []
   (let [shape (next-shape)
         shape2 (next-shape)
-        field (vec2d 10 16 :blank)]
+        field (vec2d 10 16 :blank)
+        pos (start-pos field shape)]
     { :field field
       :shape shape
       :shape-next shape2
-      :pos (start-pos field shape)
-      :score 0 }))
+      :pos pos
+      :score 0
+      :view (overlay-allowed field shape pos)
+      :view-next (overlay-allowed (vec2d 4 2 :blank) shape2 [0 0]) }))
 
 (defn rotate [{:keys [field shape pos] :as game}]
   (let [rotated (rotate-shape shape)]
-    (if (overlay-allowed field rotated pos)
-      (assoc game :shape rotated)
+    (if-let [view (overlay-allowed field rotated pos)]
+      (merge game { :shape rotated :view view} )
       game)))
 
 (def left [0 -1])
@@ -102,7 +95,7 @@
 (defn move [{:keys [field shape pos shape-next score] :as game} requested-dir]
   (let [new-pos (next-pos pos requested-dir)]
     (if-let [overlayed (overlay-allowed field shape new-pos)]
-      (assoc game :pos new-pos)
+      (merge game { :pos new-pos :view overlayed } )
       (if-not (= requested-dir down)
         game
         (let [new-field (overlay-allowed field shape pos)
@@ -119,6 +112,6 @@
                        (assoc :shape-next new-shape2)
                        (assoc :pos start-pos)
                        (assoc :score (+ score (* 10 (count rm-rows)))))]
-          (if (overlay-allowed new-field new-shape start-pos)
-            game
+          (if-let [view (overlay-allowed new-field new-shape start-pos)]
+            (merge game { :view view :view-next (overlay-allowed (vec2d 4 2 :blank) new-shape2 [0 0])})
             (assoc game :lost true)))))))
