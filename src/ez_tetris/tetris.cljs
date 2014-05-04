@@ -69,30 +69,17 @@
 (defn- next-shape []
   (nth shapes (rand-int (count shapes))))
 
-(defn starting-state []
-  (let [shape (next-shape)
-        shape2 (next-shape)
-        field (vec2d 10 16 :blank)
-        pos (start-pos field shape)]
-    { :field field
-      :shape shape
-      :shape-next shape2
-      :pos pos
-      :score 0
-      :view (overlay-allowed field shape pos)
-      :view-next (overlay-allowed (vec2d 4 2 :blank) shape2 [0 0]) }))
-
-(defn rotate [{:keys [field shape pos] :as game}]
+(defn- rotate [{:keys [field shape pos] :as game}]
   (let [rotated (rotate-shape shape)]
     (if-let [view (overlay-allowed field rotated pos)]
       (merge game { :shape rotated :view view} )
       game)))
 
-(def left [0 -1])
-(def right [0 1])
-(def down [1 0])
+(def ^:private left [0 -1])
+(def ^:private right [0 1])
+(def ^:private down [1 0])
 
-(defn move [{:keys [field shape pos shape-next score] :as game} requested-dir]
+(defn- move* [{:keys [field shape pos shape-next score] :as game} requested-dir]
   (let [new-pos (next-pos pos requested-dir)]
     (if-let [overlayed (overlay-allowed field shape new-pos)]
       (merge game { :pos new-pos :view overlayed } )
@@ -115,3 +102,25 @@
           (if-let [view (overlay-allowed new-field new-shape start-pos)]
             (merge game { :view view :view-next (overlay-allowed (vec2d 4 2 :blank) new-shape2 [0 0])})
             (assoc game :lost true)))))))
+
+(defn- starting-state []
+  (let [shape (next-shape)
+        shape2 (next-shape)
+        field (vec2d 10 16 :blank)
+        pos (start-pos field shape)]
+    { :field field
+      :shape shape
+      :shape-next shape2
+      :pos pos
+      :score 0
+      :view (overlay-allowed field shape pos)
+      :view-next (overlay-allowed (vec2d 4 2 :blank) shape2 [0 0]) }))
+
+(defn play [game dir]
+  (condp = dir
+    :left (move* game left)
+    :right (move* game right)
+    :down (move* game down)
+    :rotate (rotate game)
+    :new (starting-state)
+    game))

@@ -1,7 +1,7 @@
 (ns ez-tetris.core
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [ez-tetris.util :refer [beat]]
-            [ez-tetris.tetris :refer [move rotate left right down starting-state]]
+            [ez-tetris.tetris :refer [play]]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <! map> filter>]]
@@ -14,29 +14,15 @@
 
 (.addEventListener js/window "load" #(.attach js/FastClick (.-body js/document)) false)
 
-(defn initial-state [] { :game (starting-state)
+(defn initial-state [] { :game (play nil :new)
                          :name "EZ Tetris"})
 
 (def game (atom (initial-state)))
 
-(def commands #{ :left :right :down :rotate })
-
-(defmulti handler (fn [cmd _] cmd))
-
-(defmethod handler :left [_ game]
-  (move game left))
-
-(defmethod handler :right [_ game]
-  (move game right))
-
-(defmethod handler :down [_ game]
-  (move game down))
-
-(defmethod handler :rotate [_ game]
-  (rotate game))
-
-(defmethod handler :default [_ game]
-  game)
+(defn- click-handler [chan cmd]
+  (fn [evt]
+    (.blur (.-target evt))
+    (put! chan cmd)))
 
 (defn- render-field [field & [classes]]
   (apply dom/div #js { :className (:field classes "field") }
@@ -56,10 +42,10 @@
     om/IRenderState
     (render-state [_ { :keys [command] }]
             (dom/div #js { :className "controls" }
-                     (dom/button #js { :className "thumb" :onClick #(put! command :left) } "left")
-                     (dom/button #js { :className "thumb spaced" :onClick #(put! command :rotate) } "rotate")
-                     (dom/button #js { :className "thumb" :onClick #(put! command :right) } "right")
-                     (dom/button #js { :className "thumb" :onClick #(put! command :down) } "down")))))
+                     (dom/button #js { :className "thumb" :onClick (click-handler command :left) } "left")
+                     (dom/button #js { :className "thumb spaced" :onClick (click-handler command :rotate) } "rotate")
+                     (dom/button #js { :className "thumb" :onClick (click-handler command :right) } "right")
+                     (dom/button #js { :className "thumb" :onClick (click-handler command :down) } "down")))))
 
 (defn misc-info [game owner]
   (reify
@@ -70,6 +56,13 @@
                      (render-field (:view-next game) { :field "misc-row" })
                      (dom/div #js {:className "misc-row"} "Score:")
                      (dom/div #js {:className "misc-row"} (:score game))))))
+
+(defn game-controls [app owner]
+  (reify
+    om/IRenderState
+    (render-state [_ { :keys [command] }]
+            (dom/div #js { :className "game-controls" }
+                     (dom/button #js { :onClick (click-handler command :new) } "New game")))))
 
 (comment
 
@@ -83,6 +76,8 @@
   + optimize for mobile
 
   )
+
+(def commands #{ :left :right :down :rotate :new })
 
 (defn tetris [app owner]
   (reify
@@ -103,17 +98,20 @@
                   (go (loop []
                         (let [cmd (<! command)]
                           ;; (println "command " key)
-                          (om/transact! app :game #(handler cmd %))
+                          (om/transact! app :game #(play % cmd))
                           (recur))))))
     om/IWillUpdate
     (will-update [_ next-props next-state]
                  ;; (println next-props " - " next-state)
-                 (when (get-in next-props [:game :lost])
-                   (.stop (:timer next-state))))
+                 (when (and (get-in next-props [:game :lost]) (not (get-in app [:game :lost])))
+                   (.stop (:timer next-state)))
+                 (when (and (not (get-in next-props [:game :lost])) (get-in app [:game :lost]))
+                   (beat (:timer next-state) 500)))
     om/IRenderState
     (render-state [_ state]
                   (dom/div nil
                            (dom/h1 nil (:name app))
+                           (om/build game-controls nil { :init-state state })
                            (om/build field (:game app))
                            (om/build misc-info (:game app))
                            (if (get-in app [:game :lost])

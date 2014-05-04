@@ -1,6 +1,11 @@
 (defproject ez-tetris "0.1.0-SNAPSHOT"
   :description "Tetris-like game for Maya."
-  :url "http://54.201.123.111/ez-tetris"
+  :url "https://github.com/ez121sl/ez-tetris"
+
+  :license { :name "Eclipse Public License - v 1.0"
+             :url "http://www.eclipse.org/legal/epl-v10.html"
+             :distribution :manual
+             :comments "same as Clojure"}
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.clojure/clojurescript "0.0-2202"]
