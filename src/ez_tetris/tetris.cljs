@@ -14,7 +14,9 @@
              [[:brown :brown :brown]
               [:brown :blank  :blank]]
              [[:orange :orange :orange]
-              [:blank :blank :orange]]])
+              [:blank :blank :orange]]
+             [[:blank :magenta :blank]
+             [:magenta :magenta :magenta]]])
 
 (defn- rotate-shape [s]
   (apply mapv vector (map reverse s)))
