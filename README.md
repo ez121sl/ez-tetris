@@ -5,7 +5,7 @@ Tetris-like game for Maya
 
 ## Play
 
-http://54.201.123.111/ez-tetris
+http://54.68.220.132/ez-tetris (Link is subject to change)
 
 ## Build from source
 
