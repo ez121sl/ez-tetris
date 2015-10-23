@@ -17,6 +17,7 @@
   :plugins [[lein-cljsbuild "1.1.0"]]
 
   :source-paths ["src"]
+  :clean-targets ["target" "out" "ez_tetris.js" "ez_tetris_release.js" ]
 
   :cljsbuild {
     :builds [{:id "ez-tetris"
