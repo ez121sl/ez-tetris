@@ -1,6 +1,7 @@
 pom.xml
 *jar
 ez_tetris.js
+ez_tetris_release.js
 /lib/
 /classes/
 /out/

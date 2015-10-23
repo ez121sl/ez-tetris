@@ -7,12 +7,14 @@
              :distribution :manual
              :comments "same as Clojure"}
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/clojurescript "0.0-2202"]
-                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
-                 [om "0.5.0"]]
+  :dependencies [[org.clojure/clojure "1.7.0"]
+                 [org.clojure/clojurescript "1.7.145" :classifier "aot"
+                  :exclusion [org.clojure/data.json]]
+                 [org.clojure/data.json "0.2.6" :classifier "aot"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
+                 [org.omcljs/om "0.8.8"]]
 
-  :plugins [[lein-cljsbuild "1.0.3"]]
+  :plugins [[lein-cljsbuild "1.1.0"]]
 
   :source-paths ["src"]
 
@@ -20,7 +22,15 @@
     :builds [{:id "ez-tetris"
               :source-paths ["src"]
               :compiler {
+                :main ez-tetris.core
                 :output-to "ez_tetris.js"
                 :output-dir "out"
                 :optimizations :none
-                :source-map true}}]})
+                :source-map true}}
+             {:id "release"
+              :source-paths ["src"]
+              :compiler {
+                :main ez-tetris.core
+                :output-to "ez_tetris_release.js"
+                :optimizations :advanced
+                :pretty-print false}}]})

@@ -1,0 +1,84 @@
+            @font-face {
+                font-family: 'Laika';
+                font-style: normal;
+                font-weight: normal;
+                src: url('LAIKA.otf') format('opentype');
+            }
+            body {
+                font-family: 'Laika', sans-serif;
+                color: red;
+                background-color: #D0D0D0;
+            }
+            button {
+                font-family: inherit;
+                color: inherit;
+            }
+            h1 {
+                margin-top: 10px;
+                margin-bottom: 10px;
+            }
+            .blank {
+                background-color : white;
+            }
+            .yellow {
+                background-color : yellow;
+            }
+            .red {
+                background-color : red;
+            }
+            .green {
+                background-color : green;
+            }
+            .blue {
+                background-color : blue;
+            }
+            .brown {
+                background-color : brown;
+            }
+            .orange {
+                background-color : orange;
+            }
+            .magenta {
+                background-color : magenta;
+            }
+            .field {
+                display : inline-block;
+                border-left : thin solid black;
+                border-right : thin solid black;
+                border-bottom : thin solid black;
+            }
+            .misc-info {
+                display : inline-block;
+                margin-left : 10px;
+                vertical-align : top;
+            }
+            .row {
+                height : 10px;
+            }
+            .cell {
+                width: 10px;
+                height: 10px;
+                display: inline-block;
+            }
+            .misc-row {
+                margin-bottom: 10px;
+            }
+            .thumb {
+                height: 72px;
+                width: 72px;
+            }
+            .spaced {
+                margin-left: 5px;
+                margin-right: 5px;
+                margin-bottom: 5px;
+            }
+            .bigger {
+                width: 144px;
+            }
+            .controls {
+                width: 226px;
+                text-align: center;
+            }
+            .game-controls {
+                margin-bottom: 5px;
+            }

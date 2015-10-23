@@ -64,19 +64,6 @@
             (dom/div #js { :className "game-controls" }
                      (dom/button #js { :onClick (click-handler command :new) } "New game")))))
 
-(comment
-
-  TODO:
-
-  - Different levels + start / stop / pause game
-  + view next next shape
-  + score
-  + push to github
-  + deploy to Amazon
-  + optimize for mobile
-
-  )
-
 (def commands #{ :left :right :down :rotate :new })
 
 (defn tetris [app owner]
