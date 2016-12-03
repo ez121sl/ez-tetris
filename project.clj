@@ -14,17 +14,23 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [org.omcljs/om "0.8.8"]]
 
-  :plugins [[lein-cljsbuild "1.1.0"]]
+  :plugins [[lein-cljsbuild "1.1.0"]
+            [lein-s3-sync "0.4.0"]]
 
   :source-paths ["src"]
   :clean-targets ["target" "out" "ez_tetris.js" "ez_tetris_release.js" ]
+
+  :s3-sync { :local-dir "./resources/public"
+            :bucket "ez121sl-ez-tetris"
+            :access-key ~(System/getenv "AWS_ACCESS_KEY")
+            :secret-key ~(System/getenv "AWS_SECRET_KEY") }
 
   :cljsbuild {
     :builds [{:id "ez-tetris"
               :source-paths ["src"]
               :compiler {
                 :main ez-tetris.core
-                :output-to "ez_tetris.js"
+                :output-to "resources/public/ez_tetris.js"
                 :output-dir "out"
                 :optimizations :none
                 :source-map true}}
@@ -32,6 +38,6 @@
               :source-paths ["src"]
               :compiler {
                 :main ez-tetris.core
-                :output-to "ez_tetris_release.js"
+                :output-to "resources/public/ez_tetris_release.js"
                 :optimizations :advanced
                 :pretty-print false}}]})
